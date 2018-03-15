@@ -45,19 +45,19 @@ public class CharacterCreator extends Observable  implements Serializable{
 
 
     public String[] getSpecializations() {
-        // TODO: 11.12.2017
+
         /*
         *   этот метод должен возвращать массив строк, созданных на основе enum Specialization
         *   Строки должны начинаться с заглавной буквы, остальные строчные
         * */
 
-        Specialization[] listSpec = Specialization.values();
-        String[] res = new String[listSpec.length];
+        Specialization[] list = Specialization.values();
+        String[] res = new String[list.length];
         int i;
 
-        for(i=0;i<listSpec.length;i++) {
+        for(i=0;i<list.length;i++) {
 
-            res[i]=listSpec[i].name().substring(0,1).toUpperCase()+listSpec[i].name().substring(1).toLowerCase();
+            res[i]=normalizeString(list[i].name());
         }
 
 
@@ -66,7 +66,7 @@ public class CharacterCreator extends Observable  implements Serializable{
     }
 
     public void setSpecialization(int position) {
-        // TODO: 11.12.2017
+
         /*
         *  этот метод задает специализацию в переменную mSpecialization
         *  на вход подается число, и из enum Specialization выбирается соответствующий класс
@@ -77,22 +77,38 @@ public class CharacterCreator extends Observable  implements Serializable{
         *  если введенное число больше длины enum, то в mSpecialization записывается самое последнее (длина - 1) значение
         *
         * */
+        Specialization[] list = Specialization.values();
+        int len = list.length;
 
+        if(position<0) {position=0;}
+            else if (position>len-1) {position = len-1;}
+
+        mSpecialization = list[position];
     }
 
     public String[] getRaces() {
-        // TODO: 11.12.2017
+
         /*
         *   этот метод должен возвращать массив строк, созданных на основе enum Races
         *    Строка должна быть формата - первая буква заглавная, остальные строчные
         *   One, Two, Three
         * */
+        Race[] list = Race.values();
 
-        return new String[]{""};
+        String[] res = new String[list.length];
+        int i;
+
+        for(i=0;i<list.length;i++) {
+
+            res[i]=normalizeString(list[i].name());
+        }
+
+        return res;
+
     }
 
     public void setRace(int position) {
-        // TODO: 11.12.2017
+        //
         /*
         *  этот метод задает специализацию в переменную mRace
         *  на вход подается число, и из enum Race выбирается соответствующая раса
@@ -104,22 +120,40 @@ public class CharacterCreator extends Observable  implements Serializable{
         *  если введенное число больше длины enum, то в mRace записывается самое последнее (длина - 1) значение
         *
         * */
+
+        Race[] list = Race.values();
+        int len = list.length;
+
+        if(position<0) {position=0;}
+        else if (position>len-1) {position = len-1;}
+
+        mRace = list[position];
     }
 
     public String[] getAttributes() {
 
-        // TODO: 11.12.2017
+
         /*
         *   этот метод должен возвращать массив строк, созданных на основе enum Attribute
         *    Строка должна быть формата - первая буква заглавная, остальные строчные
         *   One, Two, Three
         * */
-        return new String[]{""};
+        Attribute[] list = Attribute.values();
+
+        String[] res = new String[list.length];
+        int i;
+
+        for(i=0;i<list.length;i++) {
+
+            res[i]=normalizeString(list[i].name());
+        }
+
+        return res;
 
     }
 
     public String[] getPerks() {
-        // TODO: 11.12.2017
+
         /*
         *   этот метод должен возвращать массив строк, созданных на основе enum Perk
         *   Строка должна быть формата - первая буква заглавная, остальные строчные
@@ -127,11 +161,21 @@ public class CharacterCreator extends Observable  implements Serializable{
         *
         * */
 
-        return new String[]{""};
+        Perk[] list = Perk.values();
+
+        String[] res = new String[list.length];
+        int i;
+
+        for(i=0;i<list.length;i++) {
+
+            res[i]=normalizeString(list[i].name());
+        }
+
+        return res;
 
     }
     public void updateAttributeValue(int position, int updateTo) {
-        // TODO: 11.12.2017
+        //  11.12.2017
         /*
         *  этот метод увеличивает/уменьшает соответствующее значение атрибута
         *  рекомендуется реализовывать его в последнюю очередь
@@ -166,6 +210,36 @@ public class CharacterCreator extends Observable  implements Serializable{
         *   если количество доступных очков равно 0
         *       то мы не можем увеличить атрибут, ничего не происходит        *
         * */
+
+        Attribute[] listAttr = Attribute.values();
+
+        /**
+         * проверем, что позиция в границах допустимого индекса массива
+         */
+        if(position>=0 && position<listAttr.length)
+        {
+            /**
+             * проверим, что оставшихся очков хватит для изменения значения атрибута
+             */
+            if(mAvailablePoints-updateTo>=0) {
+                String attrName = listAttr[position].name();
+                int attrValue = mAttributesMap.get(attrName);
+
+
+                /**
+                 * проверим что значение атрибута можно изменить на требуемую величину
+                 */
+                if(attrValue+updateTo>=1) {
+                    mAttributesMap.put(attrName,attrValue+updateTo);
+                    mAvailablePoints -= updateTo;
+                    setChanged();
+                    notifyObservers();
+                }
+            }
+
+
+        }
+
 
     }
 
@@ -219,4 +293,16 @@ public class CharacterCreator extends Observable  implements Serializable{
     public int getSpecializationPosition() {
         return mSpecialization.ordinal();
     }
+
+    /**
+     * Приведение строки к нормальному виду - первая буква заглавная, остальные строчные.
+     * @param src
+     * @return
+     */
+    public static String normalizeString (String src){
+        String res;
+        res = src.substring(0,1).toUpperCase()+src.substring(1).toLowerCase();
+        return res;
+    }
 }
+
